@@ -13,7 +13,9 @@ if "mistral_agent" not in st.session_state:
     st.session_state["mistral_agent"] = "ag:cf990a21:20250423:untitled-agent:88228b9f"
 
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Hello! I am a chatbot that can answer questions about Brawl Stars."},
+    ]
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
