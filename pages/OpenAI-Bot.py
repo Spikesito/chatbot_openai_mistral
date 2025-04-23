@@ -4,8 +4,10 @@ import streamlit as st
 st.title("Mistral Chatbot for Brawl Stars")
 st.write("This is a chatbot that can answer questions about Brawl Stars.")
 
-api_key = st.sidebar.text_input("Enter your OPENAI API key", type="password")
-client = OpenAI(api_key=api_key)
+# api_key = st.sidebar.text_input("Enter your OPENAI API key", type="password")
+# client = OpenAI(api_key=api_key)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"

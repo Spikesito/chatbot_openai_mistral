@@ -4,10 +4,10 @@ import streamlit as st
 st.title("Mistral Chatbot for Brawl Stars")
 st.write("This is a chatbot that can answer questions about Brawl Stars.")
 
-api_key = st.sidebar.text_input("Enter your Mistral API key", type="password")
+# api_key = st.sidebar.text_input("Enter your Mistral API key", type="password")
 
-# client = Mistral(api_key=st.secrets["MISTRAL_API_KEY"])
-client = Mistral(api_key=api_key)
+client = Mistral(api_key=st.secrets["MISTRAL_API_KEY"])
+# client = Mistral(api_key=api_key)
 
 if "mistral_agent" not in st.session_state:
     st.session_state["mistral_agent"] = "ag:cf990a21:20250423:untitled-agent:88228b9f"
