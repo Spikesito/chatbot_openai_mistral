@@ -8,7 +8,6 @@ st.write("This is a chatbot that can answer questions about Brawl Stars.")
 # client = OpenAI(api_key=api_key)
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
 
@@ -39,5 +38,5 @@ if prompt := st.chat_input("What is up?"):
             store=True
         )
         result = stream.output[0].content[0].text
-        response = st.write(result)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+        st.write(result)
+    st.session_state.messages.append({"role": "assistant", "content": result})
