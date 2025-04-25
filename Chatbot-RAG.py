@@ -95,33 +95,39 @@ def get_response_from_gpt_with_rag(prompt, collection_name):
 # ---------------- Fonction audio input + transcription + TTS ------------------
 st.subheader("Parlez au micro")
 
+if "audio_bytes" not in st.session_state:
+    st.session_state.audio_bytes = None
+
 audio_value = st.audio_input("Appuyez pour enregistrer une question vocale")
 
 if audio_value:
-    st.audio(audio_value)
+    st.session_state.audio_bytes = audio_value.getvalue()
+    st.audio(st.session_state.audio_bytes, format="audio/mp3")
+    st.success("Audio enregistré. Cliquez sur 'Envoyer' pour valider.")
 
-    audio_bytes = audio_value.getvalue()
-    audio_file = io.BytesIO(audio_bytes)
-    audio_file.name = "voice_input.mp3"
+if st.session_state.audio_bytes:
+    if st.button("Envoyer l'audio"):
+        audio_file = io.BytesIO(st.session_state.audio_bytes)
+        audio_file.name = "voice_input.mp3"
 
-    with st.spinner("⏳ Transcription..."):
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="text"
-        )
-    st.success("Transcription :")
-    st.write(transcript)
+        with st.spinner("Transcription..."):
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="text"
+            )
 
-    st.session_state.messages.append({"role": "user", "content": transcript})
-    with st.chat_message("user"):
-        st.markdown(transcript)
+        st.write(transcript)
+        st.session_state.messages.append({"role": "user", "content": transcript})
+        with st.chat_message("user"):
+            st.markdown(transcript)
 
-    response = get_response_from_gpt_with_rag(transcript, collection_name)
+        response = get_response_from_gpt_with_rag(transcript, collection_name)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant"):
+            st.markdown(response)
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
-    with st.chat_message("assistant"):
-        st.markdown(response)
+        st.session_state.audio_bytes = None
 
 # ---------------- Texte manuel ------------------
 if prompt := st.chat_input("Écrivez une question ici..."):
