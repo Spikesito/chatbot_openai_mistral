@@ -54,10 +54,13 @@ if uploaded_file:
 
 # Visibilité des fichiers téléchargés
 UPLOAD_FOLDER = "./downloaded_files/raw/"
+IGNORED_FILES = [".gitignore"]
+
 st.sidebar.subheader("📂 Fichiers présents")
-files = os.listdir(UPLOAD_FOLDER)
+files = [f for f in os.listdir(UPLOAD_FOLDER) if f not in IGNORED_FILES]
+
 for file in files:
-    col1, col2 = st.sidebar.columns([4,1])
+    col1, col2 = st.sidebar.columns([4, 1])
     col1.write(file)
     if col2.button("🗑️", key=f"del_{file}"):
         path = os.path.join(UPLOAD_FOLDER, file)
