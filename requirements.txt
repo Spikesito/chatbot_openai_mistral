@@ -1,3 +1,7 @@
 streamlit
 mistralai
 openai
+chromadb
+markdown
+PyMuPDF
+marker-pdf

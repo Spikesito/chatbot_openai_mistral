@@ -1,7 +1,7 @@
 from openai import OpenAI
 import streamlit as st
 
-st.title("Mistral Chatbot for Brawl Stars")
+st.title("OpenAI Chatbot for Brawl Stars")
 st.write("This is a chatbot that can answer questions about Brawl Stars.")
 
 # api_key = st.sidebar.text_input("Enter your OPENAI API key", type="password")
