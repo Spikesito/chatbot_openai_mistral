@@ -5,3 +5,4 @@ chromadb
 markdown
 PyMuPDF
 marker-pdf
+pydub
