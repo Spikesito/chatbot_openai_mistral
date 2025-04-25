@@ -113,6 +113,12 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    if prompt == "clear":
+        st.session_state.messages = []
+        st.rerun()
+    elif prompt == "/images":
+        st.session_state.messages.append({"role": "assistant", "content": "Voici les images disponibles"})
+
     with st.chat_message("assistant"):
         response = get_response_from_gpt_with_rag(prompt, collection_name)
         st.write(response)
