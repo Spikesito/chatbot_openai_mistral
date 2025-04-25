@@ -103,7 +103,7 @@ audio_value = st.audio_input("Appuyez pour enregistrer une question vocale")
 if audio_value:
     st.session_state.audio_bytes = audio_value.getvalue()
     st.audio(st.session_state.audio_bytes, format="audio/mp3")
-    st.success("Audio enregistré. Cliquez sur 'Envoyer' pour valider.")
+    
 
 if st.session_state.audio_bytes:
     if st.button("Envoyer l'audio"):
@@ -116,18 +116,18 @@ if st.session_state.audio_bytes:
                 file=audio_file,
                 response_format="text"
             )
-
-        st.write(transcript)
         st.session_state.messages.append({"role": "user", "content": transcript})
         with st.chat_message("user"):
             st.markdown(transcript)
+            
+        # supprimer le fichier audio
+        audio_file.close()
+        st.session_state.audio_bytes = None
 
         response = get_response_from_gpt_with_rag(transcript, collection_name)
         st.session_state.messages.append({"role": "assistant", "content": response})
         with st.chat_message("assistant"):
             st.markdown(response)
-
-        st.session_state.audio_bytes = None
 
 # ---------------- Texte manuel ------------------
 if prompt := st.chat_input("Écrivez une question ici..."):
