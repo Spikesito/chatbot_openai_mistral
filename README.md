@@ -20,7 +20,26 @@ Le projet est structuré en plusieurs fichiers :
 
 Pour installer les dépendances nécessaires, exécutez la commande suivante :
 
-```bash
+Créer un dossier `.streamlit/` à la racine du projet contenant un fichier à créer `secrets.toml`.
+Ajouter ces lignes dans le fichier nouvellement créé : 
+```shell
+MISTRAL_API_KEY = "<votre clé API mistral>"
+OPENAI_API_KEY = "<votre clé API openai>"
+```
+
+Ensuite placez vous à la racine de votre projet et créez un environnement virtuel pour votre projet : 
+```shell
+python -m venv .venv\nom_de_votre_environnement
+```
+Attention le fichier `.gitignore` est configuré pour ignorer le dossier `.venv\` donc nommez votre environnement virtuel en commençant par `.venv\` afin qu'il ne soit pas pris en compte dans un push du projet si vous faites un fork.
+
+Activez votre environnement virtuel : 
+```shell
+.venv\nom_de_votre_environnement\Scripts\activate
+```
+
+Enfin une fois votre environnement virtuel activé lancez cette commande pour installer toutes les librairies du projet :
+```shell
 pip install -r requirements.txt
 ```
 
