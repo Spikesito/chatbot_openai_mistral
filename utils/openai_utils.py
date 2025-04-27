@@ -5,14 +5,17 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def generate_image(prompt: str) -> str:
     """Génère une image avec DALL·E 3 et retourne l’URL."""
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt=prompt,
-        size="1024x1024",
-        quality="standard",
-        n=1,
-    )
-    return response.data[0].url
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+        return response.data[0].url
+    except Exception as e:
+        raise ValueError("🚫 Erreur lors de la génération de l'image. Assurez-vous que votre prompt est explicite, sans termes ambigus ou interdits (ex: violence, politique, contenu sensible). Également il n'est pas possible de faire référence à un précédent prompt.")
 
 def chat_with_openai(messages: list, model: str = "gpt-3.5-turbo") -> str:
     """Envoie une conversation à OpenAI Chat Completions et retourne la réponse."""
@@ -43,3 +46,12 @@ def chat_with_rag_context(prompt: str, docs: str, model: str = "gpt-3.5-turbo") 
         ]
     )
     return response.output[0].content[0].text
+
+def transcribe_audio(audio_file) -> str:
+    """Transcrit un fichier audio en texte via Whisper API."""
+    transcript = client.audio.transcriptions.create(
+        model="whisper-1",
+        file=audio_file,
+        response_format="text"
+    )
+    return transcript

@@ -1,68 +1,93 @@
+import io
 import streamlit as st
-from services.openai_utils import generate_image, chat_with_openai
+from utils.openai_utils import generate_image, chat_with_openai, chat_with_rag_context, transcribe_audio
+from utils.chromadb_utils import list_collections, query_collection
 
-from services.chromadb_utils import list_collections, add_documents_to_collection, query_collection, delete_collection
-from services.openai_utils import chat_with_rag_context
-from services.pdf_utils import save_uploaded_pdf, convert_pdf_to_chunks
+st.title("Chatbot Multimodal")
 
-st.title("🧠 Chatbot Multimodal")
-
+# ---------------- INIT ----------------
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
 if "messages_multimodal" not in st.session_state:
     st.session_state.messages_multimodal = []
+if "audio_bytes" not in st.session_state:
+    st.session_state.audio_bytes = None
 
-for message in st.session_state.messages_multimodal:
-    with st.chat_message(message["role"]):
-        if isinstance(message["content"], dict) and message["content"].get("type") == "image":
-            st.image(message["content"]["url"])
-        else:
-            st.markdown(message["content"])
+# ---------------- SIDEBAR ---------------
+st.sidebar.subheader("RAG : Recherche Augmentée")
+use_rag = st.sidebar.checkbox("Activer le mode RAG", value=False)
 
+st.sidebar.subheader("Choix de la base de connaissances :")
+collections = list_collections()
+collection_name = st.sidebar.selectbox("Collection active", ["Aucune"] + collections)
+
+st.sidebar.markdown("---")
+
+st.sidebar.subheader("Prompt Audio :")
+audio_value = st.sidebar.audio_input("Appuyez pour enregistrer votre question :")
+
+if use_rag and (not collection_name or collection_name == "Aucune"):
+    st.warning("🔎 RAG activé, mais aucune collection sélectionnée.")
+
+# ---------------- HANDLE PROMPT ----------------
 def handle_prompt(prompt):
     if prompt == "clear":
         st.session_state.messages_multimodal = []
         st.rerun()
     elif prompt.startswith("/image"):
         img_prompt = prompt.replace("/image", "").strip()
-        if not img_prompt:
-            return "❗ Merci d'ajouter une description."
-        return {"type": "image", "url": generate_image(img_prompt)}
+        if img_prompt : 
+            with st.spinner("📝 Transcription en cours..."):
+                try:
+                    return {"type": "image", "url": generate_image(img_prompt)}
+                except ValueError as ve:
+                    return str(ve)
+        return "Merci d'ajouter une description."
     elif use_rag:
         if collection_name and collection_name != "Aucune":
             docs = query_collection(collection_name, prompt)
             return chat_with_rag_context(prompt, str(docs), model=st.session_state["openai_model"])
         else:
-            return "❗ Merci de sélectionner une collection pour utiliser le mode RAG."
+            return "Merci de sélectionner une collection pour utiliser le mode RAG."
     else:
         messages = [
             {"role": m["role"], "content": m["content"]}
             for m in st.session_state.messages_multimodal
-            if isinstance(m["content"], str)
+            if isinstance(m["content"], str) and m["content"].strip() != ""
         ]
         messages.append({"role": "user", "content": prompt})
         return chat_with_openai(messages, st.session_state["openai_model"])
-    
-st.sidebar.subheader("📚 Collection ChromaDB")
-collections = list_collections()
-collection_name = st.sidebar.selectbox("Collection active", ["Aucune"] + collections)
 
-st.sidebar.subheader("⚙️ RAG : Retrieval Augmented Generation")
-use_rag = st.sidebar.checkbox("Activer le mode RAG", value=False)
-
-if use_rag and (not collection_name or collection_name == "Aucune"):
-    st.warning("🔎 RAG activé, mais aucune collection sélectionnée.")
-
+# ---------------- INPUT TEXTE ----------------
 if prompt := st.chat_input("Message ou commande /image une voiture volante"):
     st.session_state.messages_multimodal.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        result = handle_prompt(prompt)
-        if isinstance(result, dict) and result.get("type") == "image":
-            st.image(result["url"])
-        else:
-            st.markdown(result)
-
+    result = handle_prompt(prompt)
     st.session_state.messages_multimodal.append({"role": "assistant", "content": result})
+
+# ---------------- INPUT AUDIO ----------------
+if audio_value:
+    st.session_state.audio_bytes = audio_value.getvalue()
+
+if st.session_state.audio_bytes:
+    if st.sidebar.button("Envoyer l'audio"):
+        audio_file = io.BytesIO(st.session_state.audio_bytes)
+        audio_file.name = "voice_input.mp3"
+
+        with st.spinner("📝 Transcription en cours..."):
+            transcript = transcribe_audio(audio_file)
+
+        st.session_state.messages_multimodal.append({"role": "user", "content": transcript})
+        result = handle_prompt(transcript)
+        st.session_state.messages_multimodal.append({"role": "assistant", "content": result})
+
+        # Nettoyage
+        audio_file.close()
+        st.session_state.audio_bytes = None
+
+# ---------------- AFFICHAGE HISTORIQUE CHAT ----------------
+for message in st.session_state.messages_multimodal:
+    with st.chat_message(message["role"]):
+        if isinstance(message["content"], dict) and message["content"].get("type") == "image":
+            st.image(message["content"]["url"])
+        else:
+            st.markdown(message["content"])

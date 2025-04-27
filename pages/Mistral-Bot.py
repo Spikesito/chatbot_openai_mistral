@@ -1,5 +1,5 @@
 import streamlit as st
-from services.mistral_utils import chat_with_mistral_agent
+from utils.mistral_utils import chat_with_mistral_agent
 
 st.title("🤖 Mistral Chatbot - Brawl Stars")
 

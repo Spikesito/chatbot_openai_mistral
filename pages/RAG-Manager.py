@@ -2,12 +2,12 @@ import streamlit as st
 import os
 import shutil
 
-from services.chromadb_utils import (
+from utils.chromadb_utils import (
     list_collections,
     add_documents_to_collection,
     delete_collection
 )
-from services.pdf_utils import save_uploaded_pdf, convert_pdf_to_chunks
+from utils.pdf_utils import save_uploaded_pdf, convert_pdf_to_chunks
 
 # --------------- TITRE -----------------
 st.title("📂 Gestion des collections & fichiers PDF")
