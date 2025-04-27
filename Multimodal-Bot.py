@@ -1,7 +1,8 @@
 import io
 import streamlit as st
-from utils.openai_utils import generate_image, chat_with_openai, chat_with_rag_context, transcribe_audio
+from utils.openai_utils import analyse_image, generate_image, chat_with_openai, chat_with_rag_context, transcribe_audio
 from utils.chromadb_utils import list_collections, query_collection
+import time
 
 st.title("Chatbot Multimodal")
 
@@ -14,18 +15,22 @@ if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
 
 # ---------------- SIDEBAR ---------------
+# Checkbox pour initialiser le RAG sur la recherche
 st.sidebar.subheader("RAG : Recherche Augmentée")
 use_rag = st.sidebar.checkbox("Activer le mode RAG", value=False)
 
+# Liste des collections disponibles dans ChromaDB
 st.sidebar.subheader("Choix de la base de connaissances :")
 collections = list_collections()
 collection_name = st.sidebar.selectbox("Collection active", ["Aucune"] + collections)
 
 st.sidebar.markdown("---")
 
+# Ajout d'un prompt audio
 st.sidebar.subheader("Prompt Audio :")
-audio_value = st.sidebar.audio_input("Appuyez pour enregistrer votre question :")
+audio_value = st.sidebar.audio_input("Appuyez pour enregistrer votre question")
 
+# Message d'avertissement si RAG activé sans collection
 if use_rag and (not collection_name or collection_name == "Aucune"):
     st.warning("🔎 RAG activé, mais aucune collection sélectionnée.")
 
@@ -83,6 +88,22 @@ if st.session_state.audio_bytes:
         # Nettoyage
         audio_file.close()
         st.session_state.audio_bytes = None
+
+# ---------------- ANALYSE IMAGE ----------------
+# Exploration des fichiers
+st.sidebar.subheader("Analyse d'image :")
+uploaded_image = st.sidebar.file_uploader("Déposez une image", type=["jpg", "jpeg", "png"], key="file_uploader")
+
+# Dépot d'une image à faire analyser par le modèle
+if uploaded_image:
+    path = f"./downloaded_files/images/{uploaded_image.name}"
+    with open(path, 'wb') as f:
+        f.write(uploaded_image.getbuffer())
+
+    result = analyse_image(path)
+    st.session_state.messages_multimodal.append({"role": "user", "content": {"type": "image", "url":path}})
+    st.session_state.messages_multimodal.append({"role": "assistant", "content": result})
+
 
 # ---------------- AFFICHAGE HISTORIQUE CHAT ----------------
 for message in st.session_state.messages_multimodal:
