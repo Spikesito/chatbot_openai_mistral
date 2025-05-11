@@ -13,6 +13,8 @@ if "messages_multimodal" not in st.session_state:
     st.session_state.messages_multimodal = []
 if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
+if "image_already_processed" not in st.session_state:
+    st.session_state.image_already_processed = False
 
 # ---------------- SIDEBAR ---------------
 # Checkbox pour initialiser le RAG sur la recherche
@@ -92,18 +94,20 @@ if st.session_state.audio_bytes:
 # ---------------- ANALYSE IMAGE ----------------
 # Exploration des fichiers
 st.sidebar.subheader("Analyse d'image :")
-uploaded_image = st.sidebar.file_uploader("Déposez une image", type=["jpg", "jpeg", "png"], key="file_uploader")
+uploaded_image = st.sidebar.file_uploader("Déposez une image", type=["jpg", "jpeg", "png"], key="file_uploader", on_change=lambda: st.session_state.update({"image_already_processed": False}))
 
 # Dépot d'une image à faire analyser par le modèle
-if uploaded_image:
+if uploaded_image and not st.session_state.image_already_processed:
     path = f"./downloaded_files/images/{uploaded_image.name}"
     with open(path, 'wb') as f:
         f.write(uploaded_image.getbuffer())
 
     result = analyse_image(path)
-    st.session_state.messages_multimodal.append({"role": "user", "content": {"type": "image", "url":path}})
+    st.session_state.messages_multimodal.append({"role": "user", "content": {"type": "image", "url": path}})
     st.session_state.messages_multimodal.append({"role": "assistant", "content": result})
 
+    # Marquer l'image comme traitée
+    st.session_state.image_already_processed = True
 
 # ---------------- AFFICHAGE HISTORIQUE CHAT ----------------
 for message in st.session_state.messages_multimodal:

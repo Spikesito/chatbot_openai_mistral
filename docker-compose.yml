@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  streamlit-app:
+    build: .
+    container_name: triplebrawl
+    ports:
+      - "9090:8501"
+    volumes:
+      - ./:/app/
+      - ./downloaded_files:/app/downloaded_files
+      - ./chromadb:/app/chromadb
+      - ./datascience:/app/datascience
+      - ./.streamlit:/app/.streamlit
+      - ./pages:/app/pages
+      - ./utils:/app/utils
+    restart: unless-stopped

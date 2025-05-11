@@ -1,4 +1,5 @@
 import chromadb
+import uuid
 from chromadb.utils import embedding_functions
 
 chroma_client = chromadb.PersistentClient(path="./chromadb")
@@ -11,8 +12,10 @@ def get_or_create_collection(name: str):
 
 def add_documents_to_collection(collection_name: str, chunks: list[str]):
     collection = get_or_create_collection(collection_name)
+
+    unique_ids = [str(uuid.uuid4()) for _ in chunks]
     collection.add(
-        ids=[str(i) for i in range(len(chunks))],
+        ids=unique_ids,
         documents=chunks
     )
 
