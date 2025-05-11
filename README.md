@@ -34,7 +34,7 @@ Le projet inclut également une interface utilisateur développée avec **Stream
 
 ---
 
-## Installation (mode manuel)
+## Installation
 
 1. **Création du fichier de secrets** :  
 Créez un dossier `.streamlit` à la racine du projet avec un fichier `secrets.toml` contenant vos clés API :
@@ -60,6 +60,7 @@ python -m venv .venv/mon_env
 ```bash
 pip install -r requirements.txt
 ```
+
 
 ## Lancement du projet
 
